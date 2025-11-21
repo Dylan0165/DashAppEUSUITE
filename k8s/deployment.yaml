@@ -15,9 +15,12 @@ spec:
       labels:
         app: eusuite-dashboard
     spec:
+      imagePullSecrets:
+      - name: dockerhub-secret
       containers:
       - name: dashboard
         image: dylan016504/eusuite-dashboard:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         resources:
