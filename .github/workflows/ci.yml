@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE_NAME: your-registry/eusuite-dashboard
+  IMAGE_NAME: dylan016504/eusuite-dashboard
 
 jobs:
   build-and-push:
