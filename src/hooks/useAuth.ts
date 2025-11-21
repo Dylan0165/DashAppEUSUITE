@@ -30,9 +30,10 @@ export const useAuth = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
       setUser(null);
-      // Redirect to login with current path as redirect
-      const currentPath = window.location.pathname;
-      window.location.href = `${LOGIN_URL}?redirect=${encodeURIComponent(currentPath)}`;
+      // Redirect to login with full current URL path (including any route)
+      const redirectPath = window.location.pathname + window.location.search;
+      const redirectUrl = redirectPath === '/' ? '/dashboard' : redirectPath;
+      window.location.href = `${LOGIN_URL}?redirect=${encodeURIComponent(redirectUrl)}`;
     } finally {
       setLoading(false);
     }
@@ -45,9 +46,12 @@ export const useAuth = () => {
         credentials: 'include',
       });
       setUser(null);
-      window.location.href = LOGIN_URL;
+      // Redirect to login with dashboard as default redirect
+      window.location.href = `${LOGIN_URL}?redirect=${encodeURIComponent('/dashboard')}`;
     } catch (err) {
       console.error('Logout failed:', err);
+      // Fallback redirect
+      window.location.href = LOGIN_URL;
     }
   };
 
