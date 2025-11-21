@@ -70,10 +70,6 @@ jobs:
           fi
           chmod 600 $HOME/.kube/config
 
-      - name: Ensure namespace exists
-        run: |
-          kubectl create namespace eucloud --dry-run=client -o yaml | kubectl apply -f -
-          
       - name: Deploy or update to Kubernetes
         run: |
           # Check if deployment exists
