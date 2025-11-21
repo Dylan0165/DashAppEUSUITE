@@ -35,6 +35,13 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.IMAGE_NAME }}:latest
+          
+      - name: Verify image was pushed
+        run: |
+          echo "Image pushed successfully:"
+          echo "- ${{ env.IMAGE_NAME }}:latest"
+          echo "- ${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          echo "Verify on Docker Hub: https://hub.docker.com/r/${{ env.IMAGE_NAME }}"
 
   # Automatic deploy to Kubernetes
   deploy:
