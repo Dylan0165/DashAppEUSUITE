@@ -52,34 +52,27 @@ jobs:
       - name: Configure kubeconfig
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-          K8S_SERVER: ${{ secrets.K8S_SERVER }}
-          K8S_TOKEN: ${{ secrets.K8S_TOKEN }}
         run: |
           mkdir -p $HOME/.kube
-          if [ -n "$KUBE_CONFIG" ]; then
-            echo "$KUBE_CONFIG" | base64 --decode > $HOME/.kube/config
-            # Fix localhost references to actual server
-            sed -i 's|https://localhost:8080|'"${K8S_SERVER:-https://192.168.124.50:6443}"'|g' $HOME/.kube/config
-            sed -i 's|https://127.0.0.1:6443|'"${K8S_SERVER:-https://192.168.124.50:6443}"'|g' $HOME/.kube/config
-          else
-            # Create kubeconfig from token (alternative method)
-            kubectl config set-cluster k3s --server="${K8S_SERVER}" --insecure-skip-tls-verify=true
-            kubectl config set-credentials github-actions --token="${K8S_TOKEN}"
-            kubectl config set-context default --cluster=k3s --user=github-actions
-            kubectl config use-context default
-          fi
+          echo "$KUBE_CONFIG" | base64 --decode > $HOME/.kube/config
+          # Fix localhost references to actual server
+          sed -i 's|https://localhost:8080|https://192.168.124.50:6443|g' $HOME/.kube/config
+          sed -i 's|https://127.0.0.1:6443|https://192.168.124.50:6443|g' $HOME/.kube/config
           chmod 600 $HOME/.kube/config
+          echo "Kubeconfig configured, testing connection..."
+          kubectl cluster-info || echo "Warning: Could not connect to cluster"
 
       - name: Deploy or update to Kubernetes
         run: |
-          # Check if deployment exists
-          if kubectl get deployment eusuite-dashboard -n eucloud &> /dev/null; then
+          set -e
+          echo "Checking if deployment exists..."
+          if kubectl get deployment eusuite-dashboard -n eucloud 2>/dev/null; then
             echo "Deployment exists, updating image..."
             kubectl set image deployment/eusuite-dashboard dashboard=${{ env.IMAGE_NAME }}:${{ github.sha }} -n eucloud
           else
             echo "Deployment doesn't exist, creating..."
-            kubectl apply -f k8s/deployment.yaml -n eucloud
-            # Update to use the correct image tag
+            kubectl apply -f k8s/deployment.yaml
+            sleep 2
             kubectl set image deployment/eusuite-dashboard dashboard=${{ env.IMAGE_NAME }}:${{ github.sha }} -n eucloud
           fi
           
