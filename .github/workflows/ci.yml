@@ -88,16 +88,13 @@ jobs:
       - name: Deploy or update to Kubernetes
         run: |
           set -e
-          echo "Checking if deployment exists..."
-          if kubectl get deployment eusuite-dashboard -n eucloud 2>/dev/null; then
-            echo "Deployment exists, updating image..."
-            kubectl set image deployment/eusuite-dashboard dashboard=${{ env.IMAGE_NAME }}:${{ github.sha }} -n eucloud
-          else
-            echo "Deployment doesn't exist, creating..."
-            kubectl apply -f k8s/deployment.yaml
-            sleep 2
-            kubectl set image deployment/eusuite-dashboard dashboard=${{ env.IMAGE_NAME }}:${{ github.sha }} -n eucloud
-          fi
+          echo "Applying/updating deployment..."
+          kubectl apply -f k8s/deployment.yaml
+          sleep 2
+          echo "Updating image to specific SHA..."
+          kubectl set image deployment/eusuite-dashboard dashboard=${{ env.IMAGE_NAME }}:${{ github.sha }} -n eucloud
+          echo "Restarting deployment to pick up new secret..."
+          kubectl rollout restart deployment/eusuite-dashboard -n eucloud
           
       - name: Wait for rollout to complete
         run: |
