@@ -70,10 +70,18 @@ jobs:
           fi
           chmod 600 $HOME/.kube/config
 
-      - name: Update deployment image
+      - name: Deploy or update to Kubernetes
         run: |
-          kubectl set image deployment/eusuite-dashboard dashboard=${{ env.IMAGE_NAME }}:${{ github.sha }} -n default || \
-          kubectl apply -f k8s/deployment.yaml
+          # Check if deployment exists
+          if kubectl get deployment eusuite-dashboard -n default &> /dev/null; then
+            echo "Deployment exists, updating image..."
+            kubectl set image deployment/eusuite-dashboard dashboard=${{ env.IMAGE_NAME }}:${{ github.sha }} -n default
+          else
+            echo "Deployment doesn't exist, creating..."
+            kubectl apply -f k8s/deployment.yaml
+            # Update to use the correct image tag
+            kubectl set image deployment/eusuite-dashboard dashboard=${{ env.IMAGE_NAME }}:${{ github.sha }} -n default
+          fi
           
       - name: Wait for rollout to complete
         run: |
@@ -81,5 +89,11 @@ jobs:
           
       - name: Verify deployment
         run: |
+          echo "=== Pods Status ==="
           kubectl get pods -l app=eusuite-dashboard -n default
+          echo ""
+          echo "=== Service Info ==="
           kubectl get svc eusuite-dashboard -n default
+          echo ""
+          echo "=== Dashboard URL ==="
+          echo "Dashboard should be accessible at: http://192.168.124.50:30091"
