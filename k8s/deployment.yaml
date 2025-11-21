@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: dashboard
-        image: your-registry/eusuite-dashboard:latest
+        image: dylan016504/eusuite-dashboard:latest
         ports:
         - containerPort: 80
         resources:
