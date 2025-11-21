@@ -62,6 +62,22 @@ jobs:
           echo "Kubeconfig configured, testing connection..."
           kubectl cluster-info || echo "Warning: Could not connect to cluster"
 
+      - name: Create or update Docker Hub secret
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          # Delete existing secret if it exists
+          kubectl delete secret dockerhub-secret -n eucloud --ignore-not-found=true
+          # Create new secret
+          kubectl create secret docker-registry dockerhub-secret \
+            --docker-server=https://index.docker.io/v1/ \
+            --docker-username="${DOCKER_USERNAME}" \
+            --docker-password="${DOCKER_PASSWORD}" \
+            --docker-email=dylan@eusuite.com \
+            -n eucloud
+          echo "Docker Hub secret created/updated in eucloud namespace"
+
       - name: Deploy or update to Kubernetes
         run: |
           set -e
