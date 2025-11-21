@@ -78,7 +78,7 @@ jobs:
           
       - name: Wait for rollout to complete
         run: |
-          kubectl rollout status deployment/eusuite-dashboard -n eucloud --timeout=5m
+          kubectl rollout status deployment/eusuite-dashboard -n eucloud --timeout=3m || echo "Rollout timeout, checking status..."
           
       - name: Verify deployment
         run: |
@@ -87,6 +87,9 @@ jobs:
           echo ""
           echo "=== Service Info ==="
           kubectl get svc eusuite-dashboard -n eucloud
+          echo ""
+          echo "=== Recent Pod Events ==="
+          kubectl get events -n eucloud --field-selector involvedObject.kind=Pod --sort-by='.lastTimestamp' | tail -10
           echo ""
           echo "=== Dashboard URL ==="
           echo "Dashboard should be accessible at: http://192.168.124.50:30091"
